@@ -65,17 +65,19 @@ Route::prefix('student')->name('student.')->group(function () {
     });
 });
 
-Route::prefix('course')->name('course.')->middleware('auth')->group(function () {
+Route::prefix('course')->name('course.')->group(function () {
     Route::get('list', [CourseController::class, 'show'])->name('list');
     Route::get('details/{id}', [CourseController::class, 'showDetails'])->name('detail');
 
-    Route::get('update/{id}', [CourseController::class, 'showUpdate'])->name('update.show');
-    Route::post('update', [CourseController::class, 'update'])->name('update');
+    Route::middleware('auth')->group(function () {
+        Route::get('update/{id}', [CourseController::class, 'showUpdate'])->name('update.show');
+        Route::post('update', [CourseController::class, 'update'])->name('update');
 
-    Route::get('create', [CourseController::class, 'showCreate'])->name('create.show');
-    Route::post('create', [CourseController::class, 'create'])->name('create');
+        Route::get('create', [CourseController::class, 'showCreate'])->name('create.show');
+        Route::post('create', [CourseController::class, 'create'])->name('create');
 
-    Route::get('delete/{id}', [CourseController::class, 'delete'])->name('delete');
+        Route::get('delete/{id}', [CourseController::class, 'delete'])->name('delete');
+    });
 
     Route::post('search', [CourseController::class, 'search'])->name('search');
 });

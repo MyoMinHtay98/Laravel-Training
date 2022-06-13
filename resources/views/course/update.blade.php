@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="col-md-6 well">
-        <h3 class="text-primary text-center">Update Student</h3>
+        <h3 class="text-primary text-center">Update Course</h3>
         <hr style="border-top:1px dotted #ccc;" />
         <div class="col-md-3"></div>
         <div class="col-md-6">

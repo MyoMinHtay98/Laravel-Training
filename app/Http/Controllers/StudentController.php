@@ -12,9 +12,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Services\StudentService;
 
 class StudentController extends Controller
 {
+    private $studentService;
+
+    public function __construct(StudentService $studentService)
+    {
+        $this->studentService = $studentService;
+    }
+
+
     /**
      * show all students
      *
@@ -22,7 +31,7 @@ class StudentController extends Controller
      */
     public function show()
     {
-        $students = Student::paginate(5);
+        $students = $this->studentService->getStudents();
         $teacher = Auth::user();
         return view('student.list', compact('teacher', 'students'));
     }
@@ -35,7 +44,7 @@ class StudentController extends Controller
      */
     public function showDetails($id)
     {
-        $student = Student::findOrFail($id);
+        $student = $this->studentService->getStudent($id);
 
         return view('student.details', compact('student'));
     }
@@ -48,8 +57,9 @@ class StudentController extends Controller
      */
     public function showUpdate($id)
     {
+        $student =  $this->studentService->getStudent($id);
         $courses = Course::all();
-        $student = Student::findOrFail($id);
+        // $student = $this->studentService->getStudent($id);
         return view('student.update', compact('student', 'courses'));
     }
 
@@ -81,7 +91,7 @@ class StudentController extends Controller
 
         $studentImage = $request->file_path;
         $req_id = $request->id;
-        $student = Student::find($req_id);
+        $student =$this->studentService->getStudent($req_id);
 
         if (isset($studentImage)) {
             $data = Student::where('id', $request->id)->first();
@@ -178,7 +188,7 @@ class StudentController extends Controller
      */
     public function delete($id)
     {
-        $student = Student::find($id);
+        $student = $this->studentService->getStudent($id);
         $student->courses()->detach();
         $student->detail()->delete();
         $student->delete();
@@ -194,7 +204,7 @@ class StudentController extends Controller
      */
     public function showPassword($id)
     {
-        $student = Student::findOrFail($id);
+        $student = $this->studentService->getStudent($id);
 
         return view('student.change_password', compact('student'));
     }
@@ -207,8 +217,7 @@ class StudentController extends Controller
      */
     public function checkPassword(Request $request)
     {
-        $student = Student::findOrFail($request->id);
-
+        $student = $this->studentService->getStudent($id);
         if (!Hash::check($request->oldPassword, $student->password)) {
             return back()->with(["error" => "Old Password Was Wrong"]);
         }

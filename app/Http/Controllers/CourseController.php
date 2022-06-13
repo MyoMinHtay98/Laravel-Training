@@ -5,9 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\CourseService;
 
 class CourseController extends Controller
 {
+    private $courseService;
+
+    public function __construct(CourseService $courseService)
+    {
+        $this->courseService = $courseService;
+    }
+
     /**
      * show all courses
      *
@@ -17,7 +25,7 @@ class CourseController extends Controller
     {
         $student = Auth::guard('student')->user();
         $teacher = Auth::user();
-        $courses = Course::paginate(5);
+        $courses = $this->courseService->getCourses();
         return view('course.list', compact('courses', 'student', 'teacher'));
     }
 
@@ -29,7 +37,7 @@ class CourseController extends Controller
      */
     public function showDetails($id)
     {
-        $course = Course::findOrFail($id);
+        $course = $this->courseService->getCourse($id);
 
         return view('course.details', ['course' => $course]);
     }
@@ -42,7 +50,7 @@ class CourseController extends Controller
      */
     public function showUpdate($id)
     {
-        $course = Course::findOrFail($id);
+        $course = $this->courseService->getCourse($id);
         return view('course.update', compact('course'));
     }
 
@@ -104,7 +112,7 @@ class CourseController extends Controller
      */
     public function delete($id)
     {
-        $course = Course::find($id);
+        $course = $this->courseService->getCourse($id);
         $course->students()->detach();
         $course->teachers()->detach();
         $course->delete();

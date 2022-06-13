@@ -12,9 +12,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Services\TeacherService;
 
 class TeacherController extends Controller
 {
+    private $teacherService;
+
+    public function __construct(TeacherService $teacherService)
+    {
+        $this->teacherService = $teacherService;
+    }
+
     /**
      * show all teachers
      *
@@ -22,7 +30,7 @@ class TeacherController extends Controller
      */
     public function show()
     {
-        $teachers = Teacher::paginate(5);
+        $teachers = $this->teacherService->getTeachers();
         return view('teacher.list', compact('teachers'));
     }
 
@@ -34,7 +42,7 @@ class TeacherController extends Controller
      */
     public function showDetails($id)
     {
-        $teacher = Teacher::findOrFail($id);
+        $teacher = $this->teacherService->getTeacher($id);
         return view('teacher.details', compact('teacher'));
     }
 
@@ -47,7 +55,7 @@ class TeacherController extends Controller
     public function showUpdate($id)
     {
         $courses = Course::all();
-        $teacher = Teacher::findOrFail($id);
+        $teacher = $this->teacherService->getTeacher($id);
         return view('teacher.update', compact('teacher', 'courses'));
     }
 
@@ -80,7 +88,7 @@ class TeacherController extends Controller
 
         $teacherImage = $request->file_path;
         $req_id = $request->id;
-        $teacher = Teacher::find($req_id);
+        $teacher =$this->teacherService->getTeacher($req_id);
 
         if (isset($teacherImage)) {
             $data = Teacher::where('id', $request->id)->first();
@@ -177,7 +185,7 @@ class TeacherController extends Controller
      */
     public function delete($id)
     {
-        $teacher = Teacher::find($id);
+        $teacher = $this->teacherService->getTeachers();
         $teacher->courses()->detach();
         $teacher->detail()->delete();
         $teacher->delete();
@@ -193,7 +201,7 @@ class TeacherController extends Controller
      */
     public function showPassword($id)
     {
-        $teacher = Teacher::findOrFail($id);
+        $teacher = $this->teacherService->getTeacher($id);
         return view('teacher.change_password', compact('teacher'));
     }
 
@@ -206,7 +214,7 @@ class TeacherController extends Controller
     public function checkPassword(Request $request)
     {
         $data = $request->all();
-        $teacher = Teacher::findOrFail($data['id']);
+        $teacher =$this->teacherService->getTeacher($data['id']);
 
         if (!Hash::check($data['oldPassword'], $teacher->password)) {
 

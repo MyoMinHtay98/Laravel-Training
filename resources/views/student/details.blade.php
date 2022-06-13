@@ -8,7 +8,7 @@
         <div class="col-md-8">
             <div class="form-group">
                 <label for="">Profile Image</label>
-                <img src="{{ asset('uploads/' . $student->file_path) }}" width="70px" height="70px" alt="Image">
+                <img src="{{ asset('uploads/' . $student->file_path) }}" width="200px" height="100px" alt="Image">
             </div>
             <div class="form-group">
                 <label>Name - </label>

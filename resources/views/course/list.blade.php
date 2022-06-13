@@ -54,11 +54,13 @@
                             <td>{{ $course['course_dt'] }}</td>
                             <td>{{ $course['description'] }}</td>
                             <td>{{ $course['duration'] }}</td>
+                            @if($teacher)
                             <td><a class="btn btn-success" href="{{ route('course.detail', $course->id) }}">Show</a></td>
                             <td><a class="btn btn-primary"
                                     href="{{ route('course.update.show', $course->id) }}">Update</a></td>
                             <td><a class="btn btn-danger" href="{{ route('course.delete', $course->id) }}">Delete</a>
                             </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>
