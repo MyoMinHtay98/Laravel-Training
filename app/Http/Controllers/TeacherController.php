@@ -13,16 +13,21 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Services\TeacherService;
+use App\Services\AuthService;
+use App\Services\CourseService;
+use App\Services\StudentService;
 
 class TeacherController extends Controller
 {
-    private $teacherService;
+    private $studentService, $authService, $courseService, $teacherService;
 
-    public function __construct(TeacherService $teacherService)
+    public function __construct(StudentService $studentService, CourseService $courseService, AuthService $authService, TeacherService $teacherService)
     {
+        $this->studentService = $studentService;
+        $this->courseService = $courseService;
+        $this->authService = $authService;
         $this->teacherService = $teacherService;
     }
-
     /**
      * show all teachers
      *
@@ -54,7 +59,7 @@ class TeacherController extends Controller
      */
     public function showUpdate($id)
     {
-        $courses = Course::all();
+        $courses = $this->courseService->getCourses();
         $teacher = $this->teacherService->getTeacher($id);
         return view('teacher.update', compact('teacher', 'courses'));
     }
@@ -83,36 +88,9 @@ class TeacherController extends Controller
             'file_path' => 'required',
         ]);
 
-        $courses = $teacherData['courses'];
-        unset($teacherData['courses']);
+        $teacher = $this->teacherService->getTeacher($request->id);
 
-        $teacherImage = $request->file_path;
-        $req_id = $request->id;
-        $teacher =$this->teacherService->getTeacher($req_id);
-
-        if (isset($teacherImage)) {
-            $data = Teacher::where('id', $request->id)->first();
-
-            $fileName = $data['file_path'];
-            if (File::exists(public_path() . '/uploads/' . $fileName)) {
-                File::delete(public_path() . '/uploads/' . $fileName);
-            }
-            $file = $request->file('file_path');
-            $extention = $file->getClientOriginalName();
-            $filename = time() . '.' . $extention;
-            $file->move(public_path() . '/uploads/', $filename);
-            $teacher->file_path = $filename;
-        }
-        $teacher->update($teacherData);
-
-        $teacher->detail()->update([
-            'mother_name' => $teacherData['mother_name'],
-            'father_name' => $teacherData['father_name'],
-            'hobby' => $teacherData['hobby'],
-        ]);
-        $teacher->courses()->detach();
-
-        $teacher->courses()->attach($courses);
+        $this->teacherService->updateTeacher($request, $teacher, $teacherData);
 
         return redirect()->route('teacher.list');
     }
@@ -124,7 +102,7 @@ class TeacherController extends Controller
      */
     public function showCreate()
     {
-        $courses = Course::all();
+        $courses = $this->courseService->getCourses();
 
         return view('teacher.create', compact('courses'));
     }
@@ -141,7 +119,7 @@ class TeacherController extends Controller
             'teacher_name' => 'required|max:50',
             'father_name' => 'required|max:50',
             'mother_name' => 'required|max:50',
-            'email' => 'required|email|max:50',
+            'email' => 'required|email|max:50|unique:teacher',
             'password' => 'required|min:8|max:20',
             'nrc' => 'required|max:20',
             'gender' => 'required',
@@ -152,27 +130,8 @@ class TeacherController extends Controller
             'address' => 'required|max:100',
             'hobby' => 'required|max:100',
         ]);
-        $teacherData['password'] = bcrypt($teacherData['password']);
-        $courses = $teacherData['courses'];
-        unset($teacherData['courses']);
 
-        $teacher = Teacher::create($teacherData);
-
-        if ($request->hasfile('file_path')) {
-            $file = $request->file('file_path');
-            $extention = $file->getClientOriginalExtension();
-            $filename = time() . '.' . $extention;
-            $file->move(public_path() . '/uploads/', $filename);
-            $teacher->file_path = $filename;
-        }
-        $teacher->save();
-        $teacher->detail()->create([
-            'mother_name' => $teacherData['mother_name'],
-            'father_name' => $teacherData['father_name'],
-            'hobby' => $teacherData['hobby'],
-        ]);
-
-        $teacher->courses()->attach($courses);
+        $this->teacherService->createTeacher($request, $teacherData);
 
         return redirect()->route('teacher.list');
     }
@@ -185,10 +144,7 @@ class TeacherController extends Controller
      */
     public function delete($id)
     {
-        $teacher = $this->teacherService->getTeachers();
-        $teacher->courses()->detach();
-        $teacher->detail()->delete();
-        $teacher->delete();
+        $teacher = $this->teacherService->deleteTeacher($id);
 
         return redirect()->back();
     }
@@ -206,27 +162,6 @@ class TeacherController extends Controller
     }
 
     /**
-     * change teacher password
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function checkPassword(Request $request)
-    {
-        $data = $request->all();
-        $teacher =$this->teacherService->getTeacher($data['id']);
-
-        if (!Hash::check($data['oldPassword'], $teacher->password)) {
-
-            return redirect()->back()->with(["error" => "Old Password Was Wrong"]);
-        }
-        Teacher::where('id', $request->id)->update(
-            ['password' => Hash::make($request->newPassword)]
-        );
-        return redirect()->route('teacher.list');
-    }
-
-    /**
      * search teacher
      *
      * @param Request $request
@@ -234,28 +169,8 @@ class TeacherController extends Controller
      */
     public function search(Request $request)
     {
-        $name = $request->name;
-        $email = $request->email;
-        $gender = $request->gender;
-        $isActive = $request->is_active;
-        $result = Teacher::query()
-            ->select('teacher.*', DB::raw('count(course_id) as total_courses'))
-            ->leftJoin('teacher_course', 'teacher.id', '=', 'teacher_course.teacher_id')
-            ->when($name, function ($q, $name) {
-                $q->where('teacher_name', 'LIKE', '%' . $name . '%');
-            })
-            ->when($email, function ($q, $email) {
-                $q->where('email', 'LIKE', '%' . $email . '%');
-            })
-            ->when($gender, function ($q, $gender) {
-                $q->where('gender', $gender);
-            })
-            ->when($isActive, function ($q, $isActive) {
-                $q->whereIn('is_active', $isActive);
-            })
-            ->groupBy('teacher.id')
-            ->orderby('id')
-            ->get();
+        $result = $this->teacherService->searchTeacher($request);
+
         return view('teacher.search', compact('result'));
     }
 
@@ -282,11 +197,7 @@ class TeacherController extends Controller
             'password' => 'required|min:8|max:20',
         ]);
 
-        if (Auth::attempt($teacher)) {
-            return redirect()->route('teacher.profile.show');
-        }
-
-        return back()->with(["error" => "Your Email or Password Was Wrong"]);
+        return $this->authService->loginTeacher($teacher);
     }
 
     /**
@@ -296,9 +207,7 @@ class TeacherController extends Controller
      */
     public function logout()
     {
-        Auth::guard('teacher')->logout();
-
-        return redirect()->route('teacher.login.show');
+        return $this->authService->logoutTeacher();
     }
 
     /**
@@ -309,10 +218,7 @@ class TeacherController extends Controller
      */
     public function profile()
     {
-        // $id = session()->get('TEACHER_ID');
-        // $teacher = Teacher::findOrFail($id);
-
-        $teacher = Auth::user();
+        $teacher =  $this->authService->checkUserTeacher();
         return view('teacher.profile', compact('teacher'));
     }
 
@@ -324,8 +230,8 @@ class TeacherController extends Controller
      */
     public function showProfileEdit()
     {
-        $teacher = Auth::user();
-        $courses = Course::all();
+        $teacher = $this->authService->checkUserTeacher();
+        $courses = $this->courseService->getCourses();
         return view('teacher.profileEdit', compact('teacher', 'courses'));
     }
 
@@ -352,20 +258,8 @@ class TeacherController extends Controller
             'hobby' => 'required|max:100',
         ]);
 
-        $courses = $teacherData['courses'];
-
-        unset($teacherData['courses']);
-
-        $teacher = Auth::user();
-        $teacher->update($teacherData);
-
-        $teacher->detail()->update([
-            'mother_name' => $teacherData['mother_name'],
-            'father_name' => $teacherData['father_name'],
-            'hobby' => $teacherData['hobby'],
-        ]);
-        $teacher->courses()->detach();
-        $teacher->courses()->attach($courses);
+        $teacher = $this->authService->checkUserTeacher();
+        $this->teacherService->profileEditTeacher($request, $teacher, $teacherData);
 
         return redirect()->route('teacher.list');
     }
@@ -377,10 +271,8 @@ class TeacherController extends Controller
      */
     public function profileDelete()
     {
-        $teacher = Auth::user();
-        $teacher->courses()->detach();
-        $teacher->detail()->delete();
-        $teacher->delete();
+        $teacher = $this->authService->checkUserTeacher();
+        $this->teacherService->profileDeleteTeacher($teacher);
 
         return redirect()->back();
     }
@@ -406,21 +298,7 @@ class TeacherController extends Controller
             'email' => 'required|email|exists:teacher',
         ]);
 
-        $token = Str::random(64);
-
-        DB::table('teacher_password_resets')->insert([
-            'email' => $request->email,
-            'token' => Hash::make($token),
-            'created_at' => Carbon::now(),
-        ]);
-        Mail::send('teacher.forgetPasswordEmail', ['token' => $token], function ($message) use ($request) {
-            $message
-                ->to($request->email, 'Receiver ABC')
-                ->subject('Laravel Basic Testing Mail')
-                ->from('xyz@gmail.com', 'Sender ABC');
-        });
-
-        return back()->with('message', 'We have e-mailed your password reset link!');
+        return $this->authService->submitForgetPasswordTeacher($request);
     }
 
     /**
@@ -446,18 +324,6 @@ class TeacherController extends Controller
             'password_confirmation' => 'required',
         ]);
 
-        $updatePassword = DB::table('teacher_password_resets')
-            ->where('email', $request->email)
-            ->first();
-
-        if ($updatePassword && Hash::check($request->token, $updatePassword->token)) {
-
-            Teacher::where('email', $request->email)
-                ->update(['password' => Hash::make($request->password)]);
-
-            DB::table('teacher_password_resets')->where('email', $request->email)->delete();
-            return redirect()->route('teacher.login')->with('message', 'Your password has been changed!');
-        }
-        return back()->withInput()->with('error', 'Invalid token!');
+        return $this->authService->submitResetPasswordTeacher($request);
     }
 }

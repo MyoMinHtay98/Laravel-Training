@@ -29,8 +29,11 @@
                 @enderror
             </div>
             <div class="form-group">
+            <img id="image" name="image" width="200px" height="100px" alt="Image">
+            </div>
+            <div class="form-group">
                 {{ Form::label('file_path', 'Profile Picture') }}
-                {{ Form::file('file_path', null, ['class' => 'form-control', 'placeholder' => 'No file chosen']) }}
+                {{ Form::file('file_path', null, ['id' => 'file_path','class' => 'form-control', 'placeholder' => 'No file chosen']) }}
                 @error('file_path')
                     <p class="error-msg red">{{ $message }}</p>
                 @enderror
@@ -119,4 +122,23 @@
             {{ Form::close() }}
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script type="text/javascript">
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#image').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $("#file_path").change(function() {
+        readURL(this);
+    });
+</script>
 @endsection

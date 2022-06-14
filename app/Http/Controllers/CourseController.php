@@ -6,14 +6,20 @@ use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\CourseService;
+use App\Services\AuthService;
+use App\Services\TeacherService;
+use App\Services\StudentService;
 
 class CourseController extends Controller
 {
-    private $courseService;
+    private $studentService, $authService, $courseService, $teacherService;
 
-    public function __construct(CourseService $courseService)
+    public function __construct(StudentService $studentService, CourseService $courseService, AuthService $authService, TeacherService $teacherService)
     {
+        $this->studentService = $studentService;
         $this->courseService = $courseService;
+        $this->authService = $authService;
+        $this->teacherService = $teacherService;
     }
 
     /**
@@ -23,8 +29,8 @@ class CourseController extends Controller
      */
     public function show()
     {
-        $student = Auth::guard('student')->user();
-        $teacher = Auth::user();
+        $student = $this->authService->checkUserStudent();
+        $teacher = $this->authService->checkUserTeacher();
         $courses = $this->courseService->getCourses();
         return view('course.list', compact('courses', 'student', 'teacher'));
     }
@@ -62,14 +68,14 @@ class CourseController extends Controller
      */
     public function update(Request $request)
     {
-        $course = $request->validate([
+        $courseData = $request->validate([
             'course_name' => 'required|max:50',
             'course_dt' => 'required|date',
             'description' => 'required',
             'duration' => 'required|numeric',
         ]);
 
-        Course::where('id', $request->id)->update($course);
+        $this->courseService->updateCourse($courseData);
 
         return redirect()->route('course.list');
     }
@@ -99,7 +105,7 @@ class CourseController extends Controller
             'duration' => 'required|numeric',
         ]);
 
-        Course::create($course);
+        $this->courseService->createCourse();
 
         return redirect()->route('course.list');
     }
@@ -113,11 +119,7 @@ class CourseController extends Controller
     public function delete($id)
     {
         $course = $this->courseService->getCourse($id);
-        $course->students()->detach();
-        $course->teachers()->detach();
-        $course->delete();
-
-        // Course::where('id', $id)->delete();
+        $this->courseService->deleteCourse($course);
 
         return redirect()->back();
     }
@@ -130,13 +132,6 @@ class CourseController extends Controller
      */
     public function search(Request $request)
     {
-        $search = $request->search;
-        $result = Course::where('course_name', 'like', '%' . $search . '%')
-            ->orWhere('course_dt', 'like', '%' . $search . '%')
-            ->orWhere('description', 'like', '%' . $search . '%')
-            ->orWhere('duration', 'like', '%' . $search . '%')
-            ->orderBy('id')
-            ->paginate(5);
-        return view('course.search', compact('result'));
+        return $this->courseService->searchCourse($request);  
     }
 }

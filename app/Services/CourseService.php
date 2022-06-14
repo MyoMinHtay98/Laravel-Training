@@ -26,4 +26,23 @@ class CourseService implements CourseServiceInterface {
         return $this->courseDao->getCourse($id);
     }
     
+    public function updateCourse($courseData)
+    {
+        return $this->courseDao->updateCourse($courseData);
+    }
+
+    public function createCourse()
+    {
+        return $this->courseDao->createCourse();
+    }
+
+    public function deleteCourse($course)
+    {
+        return $this->courseDao->deleteCourse($course);
+    }
+
+    public function searchCourse($request)
+    {
+        return $this->courseDao->searchCourse($request);
+    }
 }

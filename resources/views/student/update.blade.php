@@ -31,8 +31,7 @@
                 <p class="error-msg red">{{ $message }}</p>
             @enderror
             <div class="form-group">
-                <img id="image" src="{{ asset('uploads/' . $student->file_path) }}" width="200px" height="100px" alt="Image">
-                
+                <img id="image" src="{{ asset('uploads/' . $student->file_path) }}" width="200px" height="100px" alt="Image">   
             </div>
             <div class="form-group">
                 {{ Form::label('file_path', 'Profile Picture') }}
