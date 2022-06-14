@@ -16,11 +16,11 @@ interface AuthServiceInterface
 
     public function logoutTeacher();
 
-    public function submitForgetPasswordStudent($request);
+    public function mailSentStudent($request);
 
-    public function submitResetPasswordStudent($request);
+    public function mailSentTeacher($request);
 
-    public function submitForgetPasswordTeacher($request);
+    public function checkPasswordStudent($request);
 
-    public function submitResetPasswordTeacher($request);
+    public function checkPasswordTeacher($request);
 }

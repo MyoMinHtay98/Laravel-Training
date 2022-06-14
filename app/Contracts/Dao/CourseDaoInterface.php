@@ -13,6 +13,8 @@ interface CourseDaoInterface
     public function createCourse();
 
     public function deleteCourse($course);
+    public function deleteStudentCourse($course);
+    public function deleteTeacherCourse($course);
 
     public function searchCourse($request);
 }

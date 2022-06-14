@@ -19,23 +19,27 @@ class CourseDao implements CourseDaoInterface
 
     public function updateCourse($courseData)
     {
-        $course = Course::where('id', $request->id)->update($course);
-        return $course;
+        return Course::where('id', $request->id)->update($courseData);
     }
 
     public function createCourse()
     {
-        $course = Course::create($course);
-        return $course;
+        return Course::create($course);
     }
 
     public function deleteCourse($course)
-    {
-        $course->students()->detach();
-        $course->teachers()->detach();
-        $course->delete();
+    {   
+        return $course->delete();
+    }
 
-        return $course;
+    public function deleteStudentCourse($course)
+    {
+        return $course->students()->detach();
+    }
+
+    public function deleteTeacherCourse($course)
+    {
+        return $course->teachers()->detach();
     }
 
     public function searchCourse($request)
@@ -48,7 +52,7 @@ class CourseDao implements CourseDaoInterface
             ->orderBy('id')
             ->paginate(5);
 
-       return view('course.search', compact('result'));
+       return $result;
     }
 
 }

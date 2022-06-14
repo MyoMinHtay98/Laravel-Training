@@ -8,15 +8,18 @@ interface TeacherDaoInterface
 
     public function getTeacher($id);
 
-    public function updateTeacher($request, $teacher, $teacherData);
+    public function updateTeacherDeatils($teacher, $teacherData);
+    public function updateTeacherCourse($teacher, $course);
 
-    public function createTeacher($request,  $teacherData);
+    public function createTeacherDeatils($teacher, $teacherData);
+    public function createTeacherCourse($teacher, $courses);
 
+    public function deleteTeacherDetails($id);
+    public function deleteTeacherCourse($id);
     public function deleteTeacher($id);
 
     public function searchTeacher($request);
 
-    public function profileEditTeacher($request, $teacher, $teacherData);
-
-    public function profileDeleteTeacher($teacher);
+    public function profileEditTeacherDeatils($teacher, $teacherData);
+    public function profileEditTeacherCourse($teacher);
 }

@@ -86,9 +86,10 @@ class StudentController extends Controller
             'hobby' => 'required|max:100',
             'file_path' => 'required',
         ]);
+        $courses = $studentData['courses'];
         $student = $this->studentService->getStudent($request->id);
 
-        $this->studentService->updateStudent($request, $student, $studentData);
+        $this->studentService->updateStudent($request, $student, $studentData, $courses);
 
         return redirect()->route('student.list');
     }
@@ -128,8 +129,8 @@ class StudentController extends Controller
             'hobby' => 'required|max:100',
             'file_path' => 'required',
         ]);
-
-        $this->studentService->createStudent($request, $studentData);
+        $courses = $studentData['courses'];
+        $this->studentService->createStudent($request, $studentData, $courses);
 
         return redirect()->route('student.list');
     }
@@ -142,7 +143,8 @@ class StudentController extends Controller
      */
     public function delete($id)
     {
-        $student = $this->studentService->deleteStudent($id);
+        $student = getStudent($id);
+        $studentDelete = $this->studentService->deleteStudent($student);
 
         return redirect()->back();
     }
@@ -168,7 +170,7 @@ class StudentController extends Controller
      */
     public function search(Request $request)
     {
-        $this->studentService->searchStudent($request);
+        $result = $this->studentService->searchStudent($request);
 
         return view('student.search', compact('result'));
     }
@@ -192,11 +194,16 @@ class StudentController extends Controller
     public function login(Request $request)
     {
         $student = $request->validate([
-            'email' => 'required|email|max:30|unique:student',
+            'email' => 'required|email|max:30',
             'password' => 'required|min:8|max:20',
         ]);
 
-        return $this->authService->loginStudent($student);
+        $studentLogin = $this->authService->loginStudent($student);
+
+       if($studentLogin){
+         return redirect()->route('student.profile.show');
+        }
+        return back()->with(["error" => "Your Email or Password Was Wrong"]);
     }
 
     /**
@@ -206,7 +213,8 @@ class StudentController extends Controller
      */
     public function logout()
     {
-        return $this->authService->logoutStudent();
+        $this->authService->logoutStudent();
+        return redirect()->route('student.login.show');
     }
 
     /**
@@ -246,7 +254,7 @@ class StudentController extends Controller
             'student_name' => 'required|max:50',
             'father_name' => 'required|max:50',
             'mother_name' => 'required|max:50',
-            'email' => 'required|email|max:50|unique:student',
+            'email' => 'required|email|max:50|unique:student,email,'.$request->id,
             'gender' => 'required',
             'is_active' => 'required',
             'dob' => 'required|date',
@@ -270,7 +278,7 @@ class StudentController extends Controller
     public function profileDelete()
     {
         $student = $this->authService->checkUserStudent();
-        $this->studentService->profileDeleteStudent($student);
+        $this->studentService->deleteStudent($student);
 
         return redirect()->back();
     }
@@ -297,7 +305,9 @@ class StudentController extends Controller
             'email' => 'required|email|exists:student',
         ]);
 
-        return $this->authService->submitForgetPasswordStudent($request);
+        $this->authService->mailSentStudent($request);
+
+        return back()->with('message', 'We have e-mailed your password reset link!');
     }
 
     /**
@@ -323,7 +333,13 @@ class StudentController extends Controller
             'password_confirmation' => 'required',
         ]);
 
-        return $this->authService->submitResetPasswordStudent($request);
+        $student = $this->authService->checkPasswordStudent($request);
+
+        if($student)
+        {
+            return redirect()->route('student.login')->with('message', 'Your password has been changed!');
+        }
+        return back()->withInput()->with('error', 'Invalid token!');
 
     }
 

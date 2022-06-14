@@ -8,9 +8,9 @@ interface StudentServiceInterface
 
     public function getStudent($id);
 
-    public function updateStudent($request, $student, $studentData);
+    public function updateStudent($request, $student, $studentData, $courses);
 
-    public function createStudent($request,  $studentData);
+    public function createStudent($request,  $studentData, $courses);
 
     public function deleteStudent($id);
 
@@ -18,5 +18,4 @@ interface StudentServiceInterface
 
     public function profileEditStudent($request, $student, $studentData);
 
-    public function profileDeleteStudent($student);
 }

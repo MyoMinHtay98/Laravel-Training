@@ -4,7 +4,6 @@ namespace App\Dao;
 
 use App\Contracts\Dao\StudentDaoInterface;
 use App\Models\Student;
-use File;
 
 class StudentDao implements StudentDaoInterface
 {
@@ -18,81 +17,61 @@ class StudentDao implements StudentDaoInterface
         return Student::findOrFail($id);
     }
 
-    public function updateStudent($request, $student, $studentData)
+    public function updateStudentDeatils($student, $studentData)
     {
-        $courses = $studentData['courses'];
-        unset($studentData['courses']);
-
-        $studentImage = $request->file_path;
-
-        if (isset($studentImage)) {
-            $data = Student::where('id', $request->id)->first();
-
-            $fileName = $data['file_path'];
-            if (File::exists(public_path() . '/uploads/' . $fileName)) {
-                File::delete(public_path() . '/uploads/' . $fileName);
-            }
-            $file = $request->file('file_path');
-            $fileName = $file->getClientOriginalName(); 
-            $file->move(public_path() . '/uploads/', $fileName); //move path to $fileName
-            $studentData['file_path'] = $fileName;
-        }
-        $student->update($studentData);
-
         $student->detail()->update([
             'mother_name' => $studentData['mother_name'],
             'father_name' => $studentData['father_name'],
             'hobby' => $studentData['hobby'],
         ]);
 
+        return $student;
+    }
+
+    public function updateStudentCourse($student, $courses)
+    {
         $student->courses()->detach();
         $student->courses()->attach($courses);
 
         return $student;
     }
 
-    public function createStudent($request,  $studentData)
+    public function createStudentDeatils($student, $studentData)
     {
-        $studentData['password'] = bcrypt($studentData['password']);
-        $courses = $studentData['courses'];
-        unset($studentData['courses']);
-
-        $student = Student::create($studentData);
-
-        if ($request->hasfile('file_path')) {
-            $file = $request->file('file_path');
-            $extention = $file->getClientOriginalExtension();
-            $filename = time() . '.' . $extention;
-            $file->move(public_path() . '/uploads/', $filename);
-            $student->file_path = $filename;
-        }
-        $student->save();
         $student->detail()->create([
             'mother_name' => $studentData['mother_name'],
             'father_name' => $studentData['father_name'],
             'hobby' => $studentData['hobby'],
         ]);
 
+        return $student;
+    }
+
+    public function createStudentCourse($student, $courses)
+    {
         $student->courses()->attach($courses);
 
         return $student;
     }
 
-    public function deleteStudent($id)
+    public function deleteStudentCourse($student)
     {
-        $student = getStudent($id);
         $student->courses()->detach();
+    }
+
+    public function deleteStudentDetails($stuent)
+    {
         $student->detail()->delete();
+    }
+
+    public function deleteStudent($student)
+    {
         $student->delete();
     }
 
     public function searchStudent($request)
     {
-        $name = $request->name;
-        $email = $request->email;
-        $gender = $request->gender;
-        $isActive = $request->is_active;
-        $result = Student::query()
+        $student = Student::query()
             ->select('student.*', DB::raw('count(course_id) as total_courses'))
             ->leftJoin('student_course', 'student.id', '=', 'student_course.student_id')
             ->when($name, function ($q, $name) {
@@ -111,46 +90,25 @@ class StudentDao implements StudentDaoInterface
             ->orderby('id')
             ->get();
 
-        return $result;
+        return $student;
     }
 
-    public function profileEditStudent($request, $student, $studentData)
+    public function profileEditStudentDeatils($student, $studentData)
     {
-        $courses = $studentData['courses'];
-        unset($studentData['courses']);
-
-        $studentImage = $request->file_path;
-
-        if (isset($studentImage)) {
-            $data = Student::where('id', $request->id)->first();
-
-            $fileName = $data['file_path'];
-            if (File::exists(public_path() . '/uploads/' . $fileName)) {
-                File::delete(public_path() . '/uploads/' . $fileName);
-            }
-            $file = $request->file('file_path');
-            $fileName = $file->getClientOriginalName(); 
-            $file->move(public_path() . '/uploads/', $fileName); //move path to $fileName
-            $studentData['file_path'] = $fileName;
-        }
-        $student->update($studentData);
-
         $student->detail()->update([
             'mother_name' => $studentData['mother_name'],
             'father_name' => $studentData['father_name'],
             'hobby' => $studentData['hobby'],
         ]);
 
+        return $student;
+    }
+
+    public function profileEditStudentCourse($student)
+    {
         $student->courses()->detach();
         $student->courses()->attach($courses);
 
         return $student;
-    }
-
-    public function profileDeleteStudent($student)
-    {
-        $student->courses()->detach();
-        $student->detail()->delete();
-        $student->delete();
     }
 }

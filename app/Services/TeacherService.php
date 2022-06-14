@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Services;
- 
-use App\Models\Teacher;
+
 use App\Contracts\Dao\TeacherDaoInterface;
 use App\Contracts\Services\TeacherServiceInterface;
+use App\Models\Teacher;
+use File;
 
-class TeacherService implements TeacherServiceInterface {
+class TeacherService implements TeacherServiceInterface
+{
 
     private $teacherDao;
 
@@ -25,34 +27,70 @@ class TeacherService implements TeacherServiceInterface {
         return $this->teacherDao->getTeacher($id);
     }
 
-    public function updateTeacher($request, $teacher, $teacherData)
+    public function createTeacher($request, $teacherData, $courses)
     {
-        return $this->teacherDao->updateTeacher($request, $teacher, $teacherData);
-    }
+        $teacherData['password'] = bcrypt($teacherData['password']);
+        $courses = $teacherData['courses'];
+        unset($teacherData['courses']);
 
-    public function createTeacher($request,  $teacherData)
-    {
-        return $this->teacherDao->createTeacher($request,  $teacherData);
+        $teacher = Teacher::create($teacherData);
+
+        if ($request->hasfile('file_path')) {
+            $file = $request->file('file_path');
+            $extention = $file->getClientOriginalExtension();
+            $filename = time() . '.' . $extention;
+            $file->move(public_path() . '/uploads/', $filename);
+            $teacher->file_path = $filename;
+        }
+        $teacher->save();
+
+        $this->teacherDao->createTeacherDeatils($teacher, $teacherData);
+
+        $this->teacherDao->createTeacherCourse($teacher, $courses);
+
+        return $teacher;
     }
 
     public function deleteTeacher($id)
     {
-        return $this->teacherDao->deleteTeacher($id);
+        $this->teacherDao->deleteTeacherCourse($teacher);
+        $this->teacherDao->deleteTeacherDeatils($teacher);
+        $this->teacherDao->deleteTeacher($teacher);
     }
 
     public function searchTeacher($request)
     {
-        return $this->teacherDao->searchTeacher($request);
+        $name = $request->name;
+        $email = $request->email;
+        $gender = $request->gender;
+        $isActive = $request->is_active;
+        $result = $this->teacherDao->searchTeacher($request);
+
+        return $result;
     }
 
-    public function profileEditTeacher($request, $teacher, $teacherData)
+    public function updateTeacher($request, $teacher, $teacherData, $courses)
     {
-        return $this->teacherDao->profileEditTeacher($request, $teacher, $teacherData);
-    }
+        $courses = $teacherData['courses'];
+        unset($teacherData['courses']);
+        $teacherImage = $request->file_path;
+        if (isset($teacherImage)) {
+            $data = $this->teacherDao->getTeacher($request->id);
 
-    public function profileDeleteTeacher($teacher)
-    {
-        return $this->teacherDao->profileDeleteTeacher($teacher);
+            $fileName = $data['file_path'];
+            if (File::exists(public_path() . '/uploads/' . $fileName)) {
+                File::delete(public_path() . '/uploads/' . $fileName);
+            }
+            $file = $request->file('file_path');
+            $fileName = $file->getClientOriginalName();
+            $file->move(public_path() . '/uploads/', $fileName); //move path to $fileName
+            $teacherData['file_path'] = $fileName;
+        }
+        $teacher->update($teacherData);
+
+        $this->teacherDao->updateTeacherDeatils($teacher, $teacherData);
+        $this->teacherDao->updateTeacherCourse($teacher, $courses);
+
+        return $teacher;
     }
-    
 }

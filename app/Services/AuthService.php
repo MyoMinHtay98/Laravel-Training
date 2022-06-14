@@ -1,11 +1,15 @@
 <?php
 
 namespace App\Services;
- 
+
 use App\Contracts\Dao\AuthDaoInterface;
 use App\Contracts\Services\AuthServiceInterface;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
-class AuthService implements AuthServiceInterface {
+class AuthService implements AuthServiceInterface
+{
 
     private $AuthDao;
 
@@ -44,25 +48,51 @@ class AuthService implements AuthServiceInterface {
         return $this->authDao->logoutTeacher();
     }
 
-    public function submitForgetPasswordStudent($request)
+    public function mailSentStudent($request)
     {
-        return $this->authDao->submitForgetPasswordStudent($request);
+        $this->authDao->createForgetPasswordStudent($request);
+        Mail::send('student.forgetPasswordEmail', ['token' => $token], function ($message) use ($request) {
+            $message
+                ->to($request->email, 'Receiver ABC')
+                ->subject('Laravel Basic Testing Mail')
+                ->from('xyz@gmail.com', 'Sender ABC');
+        });
+
+        return true;
     }
 
-    public function submitResetPasswordStudent($request)
+    public function mailSentTeacher($request)
     {
-        return $this->authDao->submitResetPasswordStudent($request);
+        $this->authDao->createForgetPasswordTeacher($request);
+        Mail::send('teacher.forgetPasswordEmail', ['token' => $token], function ($message) use ($request) {
+            $message
+                ->to($request->email, 'Receiver ABC')
+                ->subject('Laravel Basic Testing Mail')
+                ->from('xyz@gmail.com', 'Sender ABC');
+        });
+
+        return true;
     }
 
-    public function submitForgetPasswordTeacher($request)
+
+    public function checkPasswordStudent($request)
     {
-        return $this->authDao->submitForgetPasswordTeacher($request);
+        $updatepassword = $this->authDao->submitResetPasswordStudent($request);
+        $token = $request->token;
+        if ($updatePassword && Hash::check($token, $updatePassword->token)) {
+            $this->authDao->updatePasswordStudent();
+        }
     }
 
-    public function submitResetPasswordTeacher($request)
+    public function checkPasswordTeacher($request)
     {
-        return $this->authDao->submitResetPasswordTeacher($request);
+        $updatepassword = $this->authDao->submitResetPasswordTeacher($request);
+        $token = $request->token;
+        if ($updatePassword && Hash::check($token, $updatePassword->token)) {
+            $this->authDao->updatePasswordTeacher();
+            return true;
+        }
+        return false;
     }
+
 }
-
-

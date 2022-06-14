@@ -1,12 +1,12 @@
 <?php
 
 namespace App\Services;
- 
-use App\Models\Course;
+
 use App\Contracts\Dao\CourseDaoInterface;
 use App\Contracts\Services\CourseServiceInterface;
 
-class CourseService implements CourseServiceInterface {
+class CourseService implements CourseServiceInterface
+{
 
     private $CourseDao;
 
@@ -20,12 +20,11 @@ class CourseService implements CourseServiceInterface {
         return $this->courseDao->getCourses();
     }
 
-
     public function getCourse($id)
     {
         return $this->courseDao->getCourse($id);
     }
-    
+
     public function updateCourse($courseData)
     {
         return $this->courseDao->updateCourse($courseData);
@@ -38,7 +37,9 @@ class CourseService implements CourseServiceInterface {
 
     public function deleteCourse($course)
     {
-        return $this->courseDao->deleteCourse($course);
+        $this->courseDao->deleteStudentCourse($course);
+        $this->courseDao->deleteTeacherCourse($course);
+        $this->courseDao->deleteCourse($course);
     }
 
     public function searchCourse($request)

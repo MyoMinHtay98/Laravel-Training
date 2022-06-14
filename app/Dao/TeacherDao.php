@@ -2,12 +2,8 @@
 
 namespace App\Dao;
 
-use File;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use App\Models\Teacher;
 use App\Contracts\Dao\TeacherDaoInterface;
+use App\Models\Teacher;
 
 class TeacherDao implements TeacherDaoInterface
 {
@@ -21,81 +17,61 @@ class TeacherDao implements TeacherDaoInterface
         return Teacher::findOrFail($id);
     }
 
-    public function updateTeacher($request, $teacher, $teacherData)
+    public function updateTeacherDeatils($teacher, $teacherData)
     {
-        $courses = $teacherData['courses'];
-        unset($teacherData['courses']);
-
-        $teacherImage = $request->file_path;
-
-        if (isset($teacherImage)) {
-            $data = Teacher::where('id', $request->id)->first();
-
-            $fileName = $data['file_path'];
-            if (File::exists(public_path() . '/uploads/' . $fileName)) {
-                File::delete(public_path() . '/uploads/' . $fileName);
-            }
-            $file = $request->file('file_path');
-            $fileName = $file->getClientOriginalName(); 
-            $file->move(public_path() . '/uploads/', $fileName); //move path to $fileName
-            $teacherData['file_path'] = $fileName;
-        }
-        $teacher->update($teacherData);
-
         $teacher->detail()->update([
             'mother_name' => $teacherData['mother_name'],
             'father_name' => $teacherData['father_name'],
             'hobby' => $teacherData['hobby'],
         ]);
 
+        return $teacher;
+    }
+
+    public function updateTeacherCourse($teacher, $courses)
+    {
         $teacher->courses()->detach();
         $teacher->courses()->attach($courses);
 
         return $teacher;
     }
 
-    public function createTeacher($request,  $teacherData)
+    public function createTeacherDeatils($teacher, $teacherData)
     {
-        $teacherData['password'] = bcrypt($teacherData['password']);
-        $courses = $teacherData['courses'];
-        unset($teacherData['courses']);
-
-        $teacher = Teacher::create($teacherData);
-
-        if ($request->hasfile('file_path')) {
-            $file = $request->file('file_path');
-            $extention = $file->getClientOriginalExtension();
-            $filename = time() . '.' . $extention;
-            $file->move(public_path() . '/uploads/', $filename);
-            $teacher->file_path = $filename;
-        }
-        $teacher->save();
         $teacher->detail()->create([
             'mother_name' => $teacherData['mother_name'],
             'father_name' => $teacherData['father_name'],
             'hobby' => $teacherData['hobby'],
         ]);
 
+        return $teacher;
+    }
+
+    public function createTeacherCourse($teacher, $courses)
+    {
         $teacher->courses()->attach($courses);
 
         return $teacher;
     }
 
-    public function deleteTeacher($id)
+    public function deleteTeacherCourse($teacher)
     {
-        $teacher = getTeacher($id);
         $teacher->courses()->detach();
+    }
+
+    public function deleteTeacherDetails($stuent)
+    {
         $teacher->detail()->delete();
+    }
+
+    public function deleteTeacher($teacher)
+    {
         $teacher->delete();
     }
 
     public function searchTeacher($request)
     {
-        $name = $request->name;
-        $email = $request->email;
-        $gender = $request->gender;
-        $isActive = $request->is_active;
-        $result = Teacher::query()
+        $teacher = Teacher::query()
             ->select('teacher.*', DB::raw('count(course_id) as total_courses'))
             ->leftJoin('teacher_course', 'teacher.id', '=', 'teacher_course.teacher_id')
             ->when($name, function ($q, $name) {
@@ -114,47 +90,26 @@ class TeacherDao implements TeacherDaoInterface
             ->orderby('id')
             ->get();
 
-        return $result;
+        return $teacher;
     }
 
-    public function profileEditTeacher($request, $teacher, $teacherData)
+    public function profileEditTeacherDeatils($teacher, $teacherData)
     {
-        $courses = $teacherData['courses'];
-        unset($teacherData['courses']);
-
-        $teacherImage = $request->file_path;
-
-        if (isset($teacherImage)) {
-            $data = Teacher::where('id', $request->id)->first();
-
-            $fileName = $data['file_path'];
-            if (File::exists(public_path() . '/uploads/' . $fileName)) {
-                File::delete(public_path() . '/uploads/' . $fileName);
-            }
-            $file = $request->file('file_path');
-            $fileName = $file->getClientOriginalName(); 
-            $file->move(public_path() . '/uploads/', $fileName); //move path to $fileName
-            $teacherData['file_path'] = $fileName;
-        }
-        $teacher->update($teacherData);
-
         $teacher->detail()->update([
             'mother_name' => $teacherData['mother_name'],
             'father_name' => $teacherData['father_name'],
             'hobby' => $teacherData['hobby'],
         ]);
 
+        return $teacher;
+    }
+
+    public function profileEditTeacherCourse($teacher)
+    {
         $teacher->courses()->detach();
         $teacher->courses()->attach($courses);
 
         return $teacher;
-    }
-
-    public function profileDeleteTeacher($teacher)
-    {
-        $teacher->courses()->detach();
-        $teacher->detail()->delete();
-        $teacher->delete();
     }
 
 }

@@ -16,11 +16,15 @@ interface AuthDaoInterface
 
     public function logoutTeacher();
 
-    public function submitForgetPasswordStudent($request);
+    public function createForgetPasswordStudent($request);
 
     public function submitResetPasswordStudent($request);
 
-    public function submitForgetPasswordTeacher($request);
+    public function createForgetPasswordTeacher($request);
 
     public function submitResetPasswordTeacher($request);
+
+    public function updatePasswordStudent();
+
+    public function updatePasswordTeacher();
 }

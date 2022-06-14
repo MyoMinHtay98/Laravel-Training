@@ -87,10 +87,10 @@ class TeacherController extends Controller
             'hobby' => 'required|max:100',
             'file_path' => 'required',
         ]);
-
+        $courses = $teacherData['courses'];
         $teacher = $this->teacherService->getTeacher($request->id);
 
-        $this->teacherService->updateTeacher($request, $teacher, $teacherData);
+        $this->teacherService->updateTeacher($request, $teacher, $teacherData, $courses);
 
         return redirect()->route('teacher.list');
     }
@@ -130,8 +130,8 @@ class TeacherController extends Controller
             'address' => 'required|max:100',
             'hobby' => 'required|max:100',
         ]);
-
-        $this->teacherService->createTeacher($request, $teacherData);
+        $courses = $teacherData['courses'];
+        $this->teacherService->createTeacher($request, $teacherData, $courses);
 
         return redirect()->route('teacher.list');
     }
@@ -197,7 +197,12 @@ class TeacherController extends Controller
             'password' => 'required|min:8|max:20',
         ]);
 
-        return $this->authService->loginTeacher($teacher);
+        $teacherLogin =  $this->authService->loginTeacher($teacher);
+        if($teacherLogin)
+        {
+            return redirect()->route('teacher.profile.show');
+        }
+        return back()->with(["error" => "Your Email or Password Was Wrong"]);
     }
 
     /**
@@ -207,7 +212,8 @@ class TeacherController extends Controller
      */
     public function logout()
     {
-        return $this->authService->logoutTeacher();
+        $this->authService->logoutTeacher();
+        return redirect()->route('teacher.login.show');
     }
 
     /**
@@ -257,9 +263,9 @@ class TeacherController extends Controller
             'address' => 'required|max:100',
             'hobby' => 'required|max:100',
         ]);
-
+        $courses = $teacherData['courses'];
         $teacher = $this->authService->checkUserTeacher();
-        $this->teacherService->profileEditTeacher($request, $teacher, $teacherData);
+        $this->teacherService->updateTeacher($request, $teacher, $teacherData, $courses);
 
         return redirect()->route('teacher.list');
     }
@@ -272,7 +278,7 @@ class TeacherController extends Controller
     public function profileDelete()
     {
         $teacher = $this->authService->checkUserTeacher();
-        $this->teacherService->profileDeleteTeacher($teacher);
+        $this->teacherService->deleteTeacher($teacher);
 
         return redirect()->back();
     }
@@ -298,7 +304,8 @@ class TeacherController extends Controller
             'email' => 'required|email|exists:teacher',
         ]);
 
-        return $this->authService->submitForgetPasswordTeacher($request);
+        $this->authService->mailSentStudent($request);
+        return back()->with('message', 'We have e-mailed your password reset link!');
     }
 
     /**
@@ -324,6 +331,12 @@ class TeacherController extends Controller
             'password_confirmation' => 'required',
         ]);
 
-        return $this->authService->submitResetPasswordTeacher($request);
+        $teacher = $this->authService->checkPasswordTeacher($request);
+
+        if($teacher)
+        {
+            return redirect()->route('teacher.login')->with('message', 'Your password has been changed!');
+        }
+        return back()->withInput()->with('error', 'Invalid token!');
     }
 }
