@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TeacherCourse extends Model
+class PostCategory extends Model
 {
     use HasFactory;
 
-    protected $table = 'teacher_course';
+    protected $table = 'post_category';
 
     public $timestamps = false;
 
     protected $fillable = [
-        'teacher_id',
-        'course_id'
+        'post_id',
+        'category_id'
     ];
 }

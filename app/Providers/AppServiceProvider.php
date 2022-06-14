@@ -14,14 +14,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('App\Contracts\Dao\StudentDaoInterface', 'App\Dao\StudentDao');
-        $this->app->bind('App\Contracts\Dao\TeacherDaoInterface', 'App\Dao\TeacherDao');
-        $this->app->bind('App\Contracts\Dao\CourseDaoInterface', 'App\Dao\CourseDao');
+        $this->app->bind('App\Contracts\Dao\UserDaoInterface', 'App\Dao\UserDao');
+        $this->app->bind('App\Contracts\Dao\PostDaoInterface', 'App\Dao\PostDao');
+        // $this->app->bind('App\Contracts\Dao\CategoryDaoInterface', 'App\Dao\CategoryDao');
         $this->app->bind('App\Contracts\Dao\AuthDaoInterface', 'App\Dao\AuthDao');
-        $this->app->bind('App\Contracts\Services\StudentServiceInterface', 'App\Services\StudentService');
-        $this->app->bind('App\Contracts\Services\TeacherServiceInterface', 'App\Services\TeacherService');
-        $this->app->bind('App\Contracts\Services\CourseServiceInterface', 'App\Services\CourseService');
-        $this->app->bind('App\Contracts\Services\AuthServiceInterface', 'App\Services\AuthService');
+        $this->app->bind('App\Contracts\Services\UserServiceInterface', 'App\Services\UserService');
+        $this->app->bind('App\Contracts\Services\PostServiceInterface', 'App\Services\PostService');
+        $this->app->bind('App\Contracts\Services\CategoryServiceInterface', 'App\Services\CategoryService');
+        // $this->app->bind('App\Contracts\Services\AuthServiceInterface', 'App\Services\AuthService');
     }
 
     /**
