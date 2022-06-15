@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Services;
 
-interface TeacherServiceInterface
+interface PostServiceInterface
 {
     
 }

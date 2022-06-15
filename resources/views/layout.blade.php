@@ -2,7 +2,11 @@
 
 <head>
     <title>Laravel</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/color.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/common.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <style type="text/css">
         @import url(https://fonts.googleapis.com/css?family=Raleway:300,400,600);
 
@@ -52,7 +56,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light navbar-laravel">
         <div class="container">
-            <a class="navbar-brand" href="#">Laravel</a>
+            <a class="navbar-brand" href="#">Bulletin Board</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -62,14 +66,14 @@
                 <ul class="navbar-nav ml-auto">
                     @guest
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('student.login') }}">Login</a>
+                            <a class="nav-link" href="{{ route('user.login') }}">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('student.create.show') }}">Register</a>
+                            <a class="nav-link" href="{{ route('user.create.show') }}">Register</a>
                         </li>
                     @else
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('student.logout') }}">Logout</a>
+                            <a class="nav-link" href="{{ route('user.logout') }}">Logout</a>
                         </li>
                     @endguest
                 </ul>
@@ -78,5 +82,5 @@
     </nav>
     @yield('content')
 </body>
-
+    @yield('script')
 </html>

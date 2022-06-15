@@ -6,10 +6,10 @@ use File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\Teacher;
-use App\Contracts\Dao\TeacherDaoInterface;
+use App\Models\Post;
+use App\Contracts\Dao\PostDaoInterface;
 
-class TeacherDao implements TeacherDaoInterface
+class PostDao implements PostDaoInterface
 {
 
 }

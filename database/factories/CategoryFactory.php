@@ -14,10 +14,7 @@ class StudentDetailsFactory extends Factory
     public function definition()
     {
         return [
-            'student_id' => $this->faker->boolean(50),
-            'mother_name' => $this->faker->name,
-            'father_name' => $this->faker->name,
-            'hobby' => $this->faker->realText($maxNbChars = 50, $indexSize = 2),
+            'category_name' => $this->faker->name,
         ];
     }
 }

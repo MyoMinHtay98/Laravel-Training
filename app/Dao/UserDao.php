@@ -2,10 +2,10 @@
 
 namespace App\Dao;
 
-use App\Models\Course;
-use App\Contracts\Dao\CourseDaoInterface;
+use App\Models\User;
+use App\Contracts\Dao\UserDaoInterface;
 
-class CourseDao implements CourseDaoInterface
+class UserDao implements UserDaoInterface
 {
 
 }

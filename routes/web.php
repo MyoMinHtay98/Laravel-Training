@@ -17,16 +17,9 @@ use Illuminate\Support\Facades\Route;
 |
  */
 
-Route::get('mail', [WelcomeController::class, 'mail']);
-Route::get('teacher_list', [TeacherController::class, 'show']);
-Route::get('course_list', [CourseController::class, 'show']);
+// Route::get('mail', [WelcomeController::class, 'mail']);
 
-// Route::get('forget-password', [StudentController::class, 'showForgetPasswordForm'])->name('forget.password.get');
-// Route::post('forget-password', [StudentController::class, 'submitForgetPasswordForm'])->name('forget.password.post');
-// Route::get('reset-password/{token}', [StudentController::class, 'showResetPasswordForm'])->name('reset.password.get');
-// Route::post('reset-password', [StudentController::class, 'submitResetPasswordForm'])->name('reset.password.post');
-
-Route::prefix('student')->name('student.')->group(function () {
+Route::prefix('user')->name('user.')->group(function () {
     Route::get('login', [StudentController::class, 'showLogin'])->name('login.show');
     Route::post('login', [StudentController::class, 'login'])->name('login');
 
@@ -42,8 +35,8 @@ Route::prefix('student')->name('student.')->group(function () {
         Route::get('update/{id}', [StudentController::class, 'showUpdate'])->name('update.show');
         Route::post('update', [StudentController::class, 'update'])->name('update');
 
-        Route::get('create', [StudentController::class, 'showCreate'])->name('create.show');
-        Route::post('create', [StudentController::class, 'create'])->name('create');
+        Route::get('register', [StudentController::class, 'showRegister'])->name('register.show');
+        Route::post('register', [StudentController::class, 'register'])->name('register');
 
         Route::get('delete/{id}', [StudentController::class, 'delete'])->name('delete');
 
