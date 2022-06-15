@@ -21,7 +21,7 @@ class Student extends Authenticatable
         'is_active',
         'dob',
         'age',
-        "file_path",
+        'file_path',
         'address'
     ];
 

@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Contracts\Dao\TeacherDaoInterface;
 use App\Contracts\Services\TeacherServiceInterface;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Teacher;
 use File;
+use Illuminate\Support\Facades\DB;
 
 class TeacherService implements TeacherServiceInterface
 {
@@ -27,6 +29,11 @@ class TeacherService implements TeacherServiceInterface
         return $this->teacherDao->getTeacher($id);
     }
 
+    public function updatePasswordTeacher($request)
+    {
+        return $this->teacherDao->updatePasswordTeacher($request);
+    }
+
     public function createTeacher($request, $teacherData, $courses)
     {
         $teacherData['password'] = bcrypt($teacherData['password']);
@@ -44,26 +51,23 @@ class TeacherService implements TeacherServiceInterface
         }
         $teacher->save();
 
-        $this->teacherDao->createTeacherDeatils($teacher, $teacherData);
+        $this->teacherDao->createTeacherDetails($teacher, $teacherData);
 
         $this->teacherDao->createTeacherCourse($teacher, $courses);
 
         return $teacher;
     }
 
-    public function deleteTeacher($id)
+    public function deleteTeacher($teacher)
     {
         $this->teacherDao->deleteTeacherCourse($teacher);
-        $this->teacherDao->deleteTeacherDeatils($teacher);
+        $this->teacherDao->deleteTeacherDetails($teacher);
         $this->teacherDao->deleteTeacher($teacher);
     }
 
     public function searchTeacher($request)
     {
-        $name = $request->name;
-        $email = $request->email;
-        $gender = $request->gender;
-        $isActive = $request->is_active;
+        
         $result = $this->teacherDao->searchTeacher($request);
 
         return $result;
@@ -88,9 +92,21 @@ class TeacherService implements TeacherServiceInterface
         }
         $teacher->update($teacherData);
 
-        $this->teacherDao->updateTeacherDeatils($teacher, $teacherData);
+        $this->teacherDao->updateTeacherDetails($teacher, $teacherData);
         $this->teacherDao->updateTeacherCourse($teacher, $courses);
 
         return $teacher;
+    }
+
+    public function checkPassword($request)
+    {
+        $data = $request->all();
+        $teacher = Teacher::findOrFail($data['id']);
+
+        if (!Hash::check($data['old_password'], $teacher->password)) {
+            return false;
+        }
+        $this->teacherDao->checkPassword($request);
+        return true;
     }
 }

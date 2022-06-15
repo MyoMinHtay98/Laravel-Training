@@ -6,6 +6,8 @@ interface CourseDaoInterface
 {
     public function getCourses();
 
+    public function getAllCourses();
+
     public function getCourse($id);
 
     public function updateCourse($courseData);

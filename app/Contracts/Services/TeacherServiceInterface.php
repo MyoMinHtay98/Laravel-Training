@@ -12,8 +12,12 @@ interface TeacherServiceInterface
 
     public function createTeacher($request,  $teacherData, $courses);
 
-    public function deleteTeacher($id);
+    public function deleteTeacher($teacher);
 
     public function searchTeacher($request);
+
+    public function updatePasswordTeacher($request);
+
+    public function checkPassword($request);
 
 }

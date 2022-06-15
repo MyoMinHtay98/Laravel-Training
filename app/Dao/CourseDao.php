@@ -12,6 +12,11 @@ class CourseDao implements CourseDaoInterface
         return Course::paginate(5);
     }
 
+    public function getAllCourses()
+    {
+        return Course::all();
+    }
+
     public function getCourse($id)
     {
         return Course::findOrFail($id);

@@ -4,6 +4,8 @@ namespace App\Dao;
 
 use App\Contracts\Dao\TeacherDaoInterface;
 use App\Models\Teacher;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class TeacherDao implements TeacherDaoInterface
 {
@@ -17,7 +19,7 @@ class TeacherDao implements TeacherDaoInterface
         return Teacher::findOrFail($id);
     }
 
-    public function updateTeacherDeatils($teacher, $teacherData)
+    public function updateTeacherDetails($teacher, $teacherData)
     {
         $teacher->detail()->update([
             'mother_name' => $teacherData['mother_name'],
@@ -36,7 +38,7 @@ class TeacherDao implements TeacherDaoInterface
         return $teacher;
     }
 
-    public function createTeacherDeatils($teacher, $teacherData)
+    public function createTeacherDetails($teacher, $teacherData)
     {
         $teacher->detail()->create([
             'mother_name' => $teacherData['mother_name'],
@@ -50,27 +52,29 @@ class TeacherDao implements TeacherDaoInterface
     public function createTeacherCourse($teacher, $courses)
     {
         $teacher->courses()->attach($courses);
+    }
 
-        return $teacher;
+    public function deleteTeacher($teacher)
+    {   
+        return $teacher->delete();
     }
 
     public function deleteTeacherCourse($teacher)
     {
-        $teacher->courses()->detach();
+        return $teacher->courses()->detach();
     }
 
-    public function deleteTeacherDetails($stuent)
+    public function deleteTeacherDetails($teacher)
     {
-        $teacher->detail()->delete();
-    }
-
-    public function deleteTeacher($teacher)
-    {
-        $teacher->delete();
+        return $teacher->detail()->delete();
     }
 
     public function searchTeacher($request)
     {
+        $name = $request->name;
+        $email = $request->email;
+        $gender = $request->gender;
+        $isActive = $request->is_active;
         $teacher = Teacher::query()
             ->select('teacher.*', DB::raw('count(course_id) as total_courses'))
             ->leftJoin('teacher_course', 'teacher.id', '=', 'teacher_course.teacher_id')
@@ -93,21 +97,23 @@ class TeacherDao implements TeacherDaoInterface
         return $teacher;
     }
 
-    public function profileEditTeacherDeatils($teacher, $teacherData)
+    public function updatePasswordTeacher($request)
     {
-        $teacher->detail()->update([
-            'mother_name' => $teacherData['mother_name'],
-            'father_name' => $teacherData['father_name'],
-            'hobby' => $teacherData['hobby'],
-        ]);
+        Teacher::where('email', $request->email)
+            ->update(['password' => Hash::make($request->password)]);
 
-        return $teacher;
+        DB::table('teacher_password_resets')->where('email', $request->email)->delete();
+        // return redirect()->route('teacher.login')->with('message', 'Your password has been changed!');
+        // return back()->withInput()->with('error', 'Invalid token!');
+
+        return true;
     }
 
-    public function profileEditTeacherCourse($teacher)
+    public function checkPassword($request)
     {
-        $teacher->courses()->detach();
-        $teacher->courses()->attach($courses);
+        $teacher = Teacher::where('id', $request->id)->update(
+            ['password' => Hash::make($request->newPassword)]
+        );
 
         return $teacher;
     }

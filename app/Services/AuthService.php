@@ -81,7 +81,9 @@ class AuthService implements AuthServiceInterface
         $token = $request->token;
         if ($updatePassword && Hash::check($token, $updatePassword->token)) {
             $this->authDao->updatePasswordStudent();
+            return true;
         }
+        return false;
     }
 
     public function checkPasswordTeacher($request)

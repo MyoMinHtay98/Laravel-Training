@@ -4,6 +4,8 @@ namespace App\Dao;
 
 use App\Contracts\Dao\StudentDaoInterface;
 use App\Models\Student;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class StudentDao implements StudentDaoInterface
 {
@@ -17,7 +19,7 @@ class StudentDao implements StudentDaoInterface
         return Student::findOrFail($id);
     }
 
-    public function updateStudentDeatils($student, $studentData)
+    public function updateStudentDetails($student, $studentData)
     {
         $student->detail()->update([
             'mother_name' => $studentData['mother_name'],
@@ -36,7 +38,7 @@ class StudentDao implements StudentDaoInterface
         return $student;
     }
 
-    public function createStudentDeatils($student, $studentData)
+    public function createStudentDetails($student, $studentData)
     {
         $student->detail()->create([
             'mother_name' => $studentData['mother_name'],
@@ -56,21 +58,26 @@ class StudentDao implements StudentDaoInterface
 
     public function deleteStudentCourse($student)
     {
-        $student->courses()->detach();
+        return $student->courses()->detach();
+        // dd($student->detail());
     }
 
-    public function deleteStudentDetails($stuent)
+    public function deleteStudentDetails($student)
     {
-        $student->detail()->delete();
+        return $student->detail()->delete();
     }
 
     public function deleteStudent($student)
     {
-        $student->delete();
+        return $student->delete();
     }
 
     public function searchStudent($request)
     {
+        $name = $request->name;
+        $email = $request->email;
+        $gender = $request->gender;
+        $isActive = $request->is_active;
         $student = Student::query()
             ->select('student.*', DB::raw('count(course_id) as total_courses'))
             ->leftJoin('student_course', 'student.id', '=', 'student_course.student_id')
@@ -93,22 +100,25 @@ class StudentDao implements StudentDaoInterface
         return $student;
     }
 
-    public function profileEditStudentDeatils($student, $studentData)
+    public function updatePasswordStudent($request)
     {
-        $student->detail()->update([
-            'mother_name' => $studentData['mother_name'],
-            'father_name' => $studentData['father_name'],
-            'hobby' => $studentData['hobby'],
-        ]);
+        Student::where('email', $request->email)
+            ->update(['password' => Hash::make($request->password)]);
+
+        DB::table('student_password_resets')->where('email', $request->email)->delete();
+
+        return true;
+        // return redirect()->route('student.login')->with('message', 'Your password has been changed!');
+        // return back()->withInput()->with('error', 'Invalid token!');
+    }
+
+    public function checkPassword($request)
+    {
+        $student = Student::where('id', $request->id)->update(
+            ['password' => Hash::make($request->newPassword)]
+        );
 
         return $student;
     }
 
-    public function profileEditStudentCourse($student)
-    {
-        $student->courses()->detach();
-        $student->courses()->attach($courses);
-
-        return $student;
-    }
 }

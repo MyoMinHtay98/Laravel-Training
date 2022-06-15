@@ -21,6 +21,7 @@ class Teacher extends Authenticatable
         'is_active',
         'dob',
         'age',
+        'file_path',
         'address'
     ];
 

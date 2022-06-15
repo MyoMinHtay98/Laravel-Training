@@ -23,8 +23,4 @@ interface AuthDaoInterface
     public function createForgetPasswordTeacher($request);
 
     public function submitResetPasswordTeacher($request);
-
-    public function updatePasswordStudent();
-
-    public function updatePasswordTeacher();
 }

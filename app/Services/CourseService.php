@@ -20,6 +20,11 @@ class CourseService implements CourseServiceInterface
         return $this->courseDao->getCourses();
     }
 
+    public function getAllCourses()
+    {
+        return $this->courseDao->getAllCourses();
+    }
+
     public function getCourse($id)
     {
         return $this->courseDao->getCourse($id);

@@ -12,10 +12,12 @@ interface StudentServiceInterface
 
     public function createStudent($request,  $studentData, $courses);
 
-    public function deleteStudent($id);
+    public function deleteStudent($student);
 
     public function searchStudent($request);
 
-    public function profileEditStudent($request, $student, $studentData);
+    public function updatePasswordStudent($request);
+
+    public function checkPassword($request);
 
 }

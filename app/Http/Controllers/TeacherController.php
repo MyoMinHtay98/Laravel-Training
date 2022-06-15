@@ -2,20 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Course;
 use App\Models\Teacher;
-use Carbon\Carbon;
-use File;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use App\Services\TeacherService;
 use App\Services\AuthService;
 use App\Services\CourseService;
 use App\Services\StudentService;
+use App\Services\TeacherService;
+use Illuminate\Support\Facades\Hash;
+use File;
+use Illuminate\Http\Request;
 
 class TeacherController extends Controller
 {
@@ -59,7 +53,7 @@ class TeacherController extends Controller
      */
     public function showUpdate($id)
     {
-        $courses = $this->courseService->getCourses();
+        $courses = $this->courseService->getAllCourses();
         $teacher = $this->teacherService->getTeacher($id);
         return view('teacher.update', compact('teacher', 'courses'));
     }
@@ -102,7 +96,7 @@ class TeacherController extends Controller
      */
     public function showCreate()
     {
-        $courses = $this->courseService->getCourses();
+        $courses = $this->courseService->getAllCourses();
 
         return view('teacher.create', compact('courses'));
     }
@@ -139,12 +133,12 @@ class TeacherController extends Controller
     /**
      * delete teacher
      *
-     * @param int $id
      * @return void
      */
     public function delete($id)
     {
-        $teacher = $this->teacherService->deleteTeacher($id);
+        $teacher = $this->teacherService->getTeacher($id);
+        $this->teacherService->deleteTeacher($teacher);
 
         return redirect()->back();
     }
@@ -162,6 +156,22 @@ class TeacherController extends Controller
     }
 
     /**
+     * change teacher password
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function checkPassword(Request $request)
+    {
+        $teacher = $this->teacherService->checkPassword($request);
+
+        if ($teacher) {
+            return redirect()->back()->with(["error" => "Old Password Was Wrong"]);
+        }
+        return redirect()->route('teacher.list');
+    }
+
+    /**
      * search teacher
      *
      * @param Request $request
@@ -169,6 +179,10 @@ class TeacherController extends Controller
      */
     public function search(Request $request)
     {
+        $name = $request->name;
+        $email = $request->email;
+        $gender = $request->gender;
+        $isActive = $request->is_active;
         $result = $this->teacherService->searchTeacher($request);
 
         return view('teacher.search', compact('result'));
@@ -197,9 +211,8 @@ class TeacherController extends Controller
             'password' => 'required|min:8|max:20',
         ]);
 
-        $teacherLogin =  $this->authService->loginTeacher($teacher);
-        if($teacherLogin)
-        {
+        $teacherLogin = $this->authService->loginTeacher($teacher);
+        if ($teacherLogin) {
             return redirect()->route('teacher.profile.show');
         }
         return back()->with(["error" => "Your Email or Password Was Wrong"]);
@@ -224,7 +237,7 @@ class TeacherController extends Controller
      */
     public function profile()
     {
-        $teacher =  $this->authService->checkUserTeacher();
+        $teacher = $this->authService->checkUserTeacher();
         return view('teacher.profile', compact('teacher'));
     }
 
@@ -333,8 +346,7 @@ class TeacherController extends Controller
 
         $teacher = $this->authService->checkPasswordTeacher($request);
 
-        if($teacher)
-        {
+        if ($teacher) {
             return redirect()->route('teacher.login')->with('message', 'Your password has been changed!');
         }
         return back()->withInput()->with('error', 'Invalid token!');

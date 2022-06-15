@@ -59,7 +59,7 @@ class StudentController extends Controller
     public function showUpdate($id)
     {
         $student = $this->studentService->getStudent($id);
-        $courses = $this->courseService->getCourses();
+        $courses = $this->courseService->getAllCourses();
 
         return view('student.update', compact('student', 'courses'));
     }
@@ -76,7 +76,7 @@ class StudentController extends Controller
             'student_name' => 'required|max:50',
             'father_name' => 'required|max:50',
             'mother_name' => 'required|max:50',
-            'email' => 'required|email|max:50',
+            'email' => 'required|email|max:50|unique:student,email,'.$request->id,
             'gender' => 'required',
             'is_active' => 'required',
             'dob' => 'required|date',
@@ -101,7 +101,7 @@ class StudentController extends Controller
      */
     public function showCreate()
     {
-        $courses = $this->courseService->getCourses();
+        $courses = $this->courseService->getAllCourses();
 
         return view('student.create', compact('courses'));
     }
@@ -143,8 +143,8 @@ class StudentController extends Controller
      */
     public function delete($id)
     {
-        $student = getStudent($id);
-        $studentDelete = $this->studentService->deleteStudent($student);
+        $student = $this->studentService->getStudent($id);
+        $this->studentService->deleteStudent($student);
 
         return redirect()->back();
     }
@@ -160,6 +160,22 @@ class StudentController extends Controller
         $student = $this->studentService->getStudent($id);
 
         return view('student.change_password', compact('student'));
+    }
+
+     /**
+     * change teacher password
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function checkPassword(Request $request)
+    {
+        $student = $this->studentService->checkPassword($request);
+
+        if ($student) {
+            return redirect()->back()->with(["error" => "Old Password Was Wrong"]);
+        }
+        return redirect()->route('student.list');
     }
 
     /**
@@ -265,7 +281,7 @@ class StudentController extends Controller
         ]);
 
         $student = $this->authService->checkUserStudent();
-        $this->studentService->profileEditStudent($request, $student, $studentData);
+        $this->studentService->updateStudent($request, $student, $studentData);
 
         return redirect()->route('student.profile.show');
     }

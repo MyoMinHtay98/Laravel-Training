@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Services\CourseService;
 use App\Services\AuthService;
-use App\Services\TeacherService;
+use App\Services\CourseService;
 use App\Services\StudentService;
+use App\Services\TeacherService;
+use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
@@ -132,6 +131,8 @@ class CourseController extends Controller
      */
     public function search(Request $request)
     {
-        return redirect()->route('course.search');  
+        $result = $this->courseService->searchCourse($request);
+
+        return view('course.search', compact('result'));
     }
 }

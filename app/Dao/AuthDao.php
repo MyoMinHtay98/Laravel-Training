@@ -79,18 +79,6 @@ class AuthDao implements AuthDaoInterface
         return $updatePassword;
     }
 
-    public function updatePasswordStudent()
-    {
-        Student::where('email', $request->email)
-            ->update(['password' => Hash::make($request->password)]);
-
-        DB::table('student_password_resets')->where('email', $request->email)->delete();
-
-        return true;
-        // return redirect()->route('student.login')->with('message', 'Your password has been changed!');
-        // return back()->withInput()->with('error', 'Invalid token!');
-    }
-
     public function submitResetPasswordTeacher($request)
     {
         $updatePassword = DB::table('teacher_password_resets')
@@ -99,16 +87,6 @@ class AuthDao implements AuthDaoInterface
         return $updatePassword;
     }
 
-    public function updatePasswordTeacher()
-    {
-        Teacher::where('email', $request->email)
-            ->update(['password' => Hash::make($request->password)]);
-
-        DB::table('teacher_password_resets')->where('email', $request->email)->delete();
-        // return redirect()->route('teacher.login')->with('message', 'Your password has been changed!');
-        // return back()->withInput()->with('error', 'Invalid token!');
-
-        return true;
-    }
+   
 
 }
